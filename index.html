@@ -32,7 +32,7 @@
             border: 1px solid #c4b9a3;
             position: relative;
             overflow: hidden;
-            box-sizing: border-box; /* Гарантирует правильный расчет ширины */
+            box-sizing: border-box; 
         }
 
         .document-container::before {
@@ -58,7 +58,7 @@
             text-transform: uppercase;
             letter-spacing: 5px;
             margin: 0;
-            word-wrap: break-word; /* Для длинных заголовков на мобилках */
+            word-wrap: break-word; 
         }
 
         .meta-info {
@@ -99,7 +99,7 @@
         .controls {
             display: flex;
             gap: 10px;
-            flex-wrap: wrap; /* Кнопки переносятся, если нет места */
+            flex-wrap: wrap;
         }
 
         button {
@@ -111,7 +111,7 @@
             text-transform: uppercase;
             font-weight: bold;
             transition: background 0.3s;
-            flex: 1 1 auto; /* Кнопки тянутся на мобилках */
+            flex: 1 1 auto; 
             min-width: 80px;
         }
 
@@ -140,7 +140,6 @@
             opacity: 0.7;
         }
 
-        /* --- АДАПТИВНОСТЬ --- */
         @media (max-width: 768px) {
             body {
                 padding: 10px;
@@ -149,10 +148,10 @@
                 padding: 25px 15px;
             }
             .document-container::before {
-                display: none; /* Убираем мешающий текст на мобильных */
+                display: none; 
             }
             .grid {
-                grid-template-columns: 1fr; /* Одна колонка вместо двух */
+                grid-template-columns: 1fr; 
                 gap: 30px;
             }
             h1 {
@@ -230,7 +229,6 @@
 </div>
 
 <script>
-    // Функционал оставлен без изменений
     document.getElementById('current-date').innerText = new Date().toLocaleDateString('en-US', {
         year: 'numeric', month: 'long', day: 'numeric'
     }).toUpperCase();
