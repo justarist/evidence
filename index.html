@@ -10,6 +10,7 @@
             --paper-color: #f4f1ea;
             --text-color: #2c2c2c;
             --accent-color: #8b0000;
+            --green-stamp-color: #189134;
             --border-color: #3d3d3d;
         }
 
@@ -32,7 +33,7 @@
             border: 1px solid #c4b9a3;
             position: relative;
             overflow: hidden;
-            box-sizing: border-box; /* Гарантирует правильный расчет ширины */
+            box-sizing: border-box;
         }
 
         .document-container::before {
@@ -58,7 +59,7 @@
             text-transform: uppercase;
             letter-spacing: 5px;
             margin: 0;
-            word-wrap: break-word; /* Для длинных заголовков на мобилках */
+            word-wrap: break-word;
         }
 
         .meta-info {
@@ -99,7 +100,7 @@
         .controls {
             display: flex;
             gap: 10px;
-            flex-wrap: wrap; /* Кнопки переносятся, если нет места */
+            flex-wrap: wrap;
         }
 
         button {
@@ -111,7 +112,7 @@
             text-transform: uppercase;
             font-weight: bold;
             transition: background 0.3s;
-            flex: 1 1 auto; /* Кнопки тянутся на мобилках */
+            flex: 1 1 auto;
             min-width: 80px;
         }
 
@@ -130,17 +131,73 @@
         }
 
         .stamp {
-            border: 3px solid var(--accent-color);
-            color: var(--accent-color);
-            padding: 5px 10px;
-            display: inline-block;
-            transform: rotate(-10deg);
+            padding: 10px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
             font-weight: bold;
             margin-top: 20px;
             opacity: 0.7;
+            text-align: center;
+        }
+        .internal {
+            color: var(--accent-color);
+            transform: rotate(-10deg);
+            border: 3px solid var(--accent-color);
+        }
+        .ver {
+            color: var(--green-stamp-color);
+            border: 5px solid var(--green-stamp-color);
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            font-size: 20px;
+            aspect-ratio: 1 / 1;
+            transform: rotate(15deg);
         }
 
-        /* --- АДАПТИВНОСТЬ --- */
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 10px;
+            font-size: 0.7rem;
+            font-family: sans-serif;
+        }
+
+        .footer-links a {
+            color: #777;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .footer-links a::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 1px;
+            bottom: -2px;
+            left: 0;
+            background-color: #777;
+            transition: width 0.3s ease;
+        }
+
+        .footer-links a:hover::after {
+            width: 100%;
+        }
+
+        .typing::after {
+            content: "█";
+            animation: blink 0.5s infinite;
+            margin-left: 2px;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+
         @media (max-width: 768px) {
             body {
                 padding: 10px;
@@ -149,10 +206,10 @@
                 padding: 25px 15px;
             }
             .document-container::before {
-                display: none; /* Убираем мешающий текст на мобильных */
+                display: none;
             }
             .grid {
-                grid-template-columns: 1fr; /* Одна колонка вместо двух */
+                grid-template-columns: 1fr;
                 gap: 30px;
             }
             h1 {
@@ -190,7 +247,7 @@
 <div class="document-container">
     <header>
         <div class="meta-info">
-            CASE FILE: #99-B21 // CLASSIFIED // SUBJECT: ENCRYPTED COMMUNIQUE<br>
+            CASE FILE: #26-K35 // CLASSIFIED // SUBJECT: ENCRYPTED COMMUNIQUE<br>
             DATE: <span id="current-date"></span><br>
             LOCATION: [REDACTED]
         </div>
@@ -218,48 +275,123 @@
             </div>
             <div class="output-area" id="decoded-output">...waiting for input...</div>
         </div>
+        <div class="section key">
+            <label>Input Key:</label>
+            <textarea id="secret-key" style="min-height: 50px;" placeholder="Enter key here..."></textarea>
+        </div>
     </div>
 
     <footer>
-        <div class="stamp">INTERNAL USE ONLY</div>
+        <div class="stamp internal">INTERNAL USE ONLY</div>
+        <div class="stamp ver">V2.0</div>
         <p style="font-size: 0.7rem; margin-top: 40px; color: #777;">
             WARNING: Unauthorized access to this document is punishable by federal law. 
             All actions are being logged by the central mainframe.
         </p>
+        <div class="footer-links">
+            <a href="https://justarist.cc">justarist.cc</a>
+            <span>|</span>
+            <a href="https://github.com/justarist">GitHub</a>
+            <span>|</span>
+            <a href="https://perlch.github.io/evidence">Original</a>
+        </div>
     </footer>
 </div>
 
 <script>
-    // Функционал оставлен без изменений
     document.getElementById('current-date').innerText = new Date().toLocaleDateString('en-US', {
         year: 'numeric', month: 'long', day: 'numeric'
     }).toUpperCase();
 
-    function customEncrypt(text) {
+    const CryptoEngine = {
+        encodeUTF8: str => new TextEncoder().encode(str),
+        decodeUTF8: bytes => new TextDecoder().decode(new Uint8Array(bytes)),
+
+        process: function(dataBytes, keyStr) {
+            let s = [], j = 0, x, res = [];
+            let key = this.encodeUTF8(keyStr);
+
+            for (let i = 0; i < 256; i++) s[i] = i;
+            for (let i = 0; i < 256; i++) {
+                j = (j + s[i] + key[i % key.length]) % 256;
+                x = s[i]; s[i] = s[j]; s[j] = x;
+            }
+
+            let i = 0; j = 0;
+            for (let y = 0; y < dataBytes.length; y++) {
+                i = (i + 1) % 256;
+                j = (j + s[i]) % 256;
+                x = s[i]; s[i] = s[j]; s[j] = x;
+                res.push(dataBytes[y] ^ s[(s[i] + s[j]) % 256]); 
+            }
+            return res;
+        }
+    };
+
+    function customEncrypt(text, key) {
         if (!text) return "EMPTY_INPUT";
-        let b64 = btoa(unescape(encodeURIComponent(text)));
-        return b64.split('').reverse().join('');
+        if (!key) return "ERROR: KEY_REQUIRED";
+        
+        let dataBytes = CryptoEngine.encodeUTF8(text);
+        let encryptedBytes = CryptoEngine.process(dataBytes, key);
+        
+        let binStr = "";
+        for (let i = 0; i < encryptedBytes.length; i++) {
+            binStr += String.fromCharCode(encryptedBytes[i]);
+        }
+        return btoa(binStr);
     }
 
-    function customDecrypt(cipher) {
+    function customDecrypt(cipherBase64, key) {
+        if (!cipherBase64) return "EMPTY_INPUT";
+        if (!key) return "ERROR: KEY_REQUIRED";
+        
         try {
-            let reversed = cipher.split('').reverse().join('');
-            return decodeURIComponent(escape(atob(reversed)));
+            let binStr = atob(cipherBase64);
+            let encryptedBytes = new Uint8Array(binStr.length);
+            for (let i = 0; i < binStr.length; i++) {
+                encryptedBytes[i] = binStr.charCodeAt(i);
+            }
+            
+            let decryptedBytes = CryptoEngine.process(encryptedBytes, key);
+            return CryptoEngine.decodeUTF8(decryptedBytes);
         } catch (e) {
-            return "ERROR: INVALID_CIPHERTEXT";
+            return "ERROR: INVALID_CIPHERTEXT_OR_KEY";
         }
+    }
+
+    function typeWriter(text, elementId) {
+        const element = document.getElementById(elementId);
+        element.innerHTML = "";
+        element.classList.add('typing');
+        
+        let i = 0;
+        const speed = 64;
+
+        function type() {
+            if (i < text.length) {
+                element.innerHTML += text.charAt(i);
+                i++;
+                setTimeout(type, speed);
+            } else {
+                element.classList.remove('typing');
+            }
+        }
+        type();
     }
 
     function processEncode() {
         const input = document.getElementById('text-to-encode').value;
-        const result = customEncrypt(input);
-        document.getElementById('encoded-output').innerText = result;
+        const key = document.getElementById('secret-key').value;
+        const result = customEncrypt(input, key);
+        typeWriter(result, 'encoded-output');
     }
 
     function processDecode() {
         const input = document.getElementById('text-to-decode').value;
-        const result = customDecrypt(input);
-        document.getElementById('decoded-output').innerText = result;
+        const key = document.getElementById('secret-key').value;
+        const result = customDecrypt(input, key);
+        typeWriter(result, 'decoded-output');
     }
 
     function copyToClipboard(elementId) {
